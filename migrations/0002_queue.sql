@@ -23,7 +23,7 @@ create index if not exists seats_branch_idx on seats (branch_id);
 
 create table if not exists tokens (
   id text primary key,
-  branch_id text not null references tokens(id),
+  branch_id text not null references branches(id),
   token_no text not null,
   service_date text not null,
   session text not null,
@@ -37,4 +37,31 @@ create table if not exists tokens (
   created_at timestamptz not null default now(),
   seated_at timestamptz,
   completed_at timestamptz
+);
+create unique index if not exists tokens_day_no_idx on tokens (branch_id, service_date, token_no);
+create index if not exists tokens_board_idx on tokens (branch_id, service_date, status, created_at);
+
+create table if not exists seatings (
+  id serial primary key,
+  token_id text not null references tokens(id) on delete cascade,
+  seat_id text not null references seats(id),
+  guests integer not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists seatings_token_idx on seatings (token_id);
+create index if not exists seatings_seat_idx on seatings (seat_id);
+
+create table if not exists callouts (
+  id serial primary key,
+  branch_id text not null,
+  token_no text not null,
+  guest_label text not null,
+  table_label text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists callouts_branch_idx on callouts (branch_id, created_at desc);
+
+create table if not exists seed_meta (
+  k text primary key,
+  v text not null
 );
